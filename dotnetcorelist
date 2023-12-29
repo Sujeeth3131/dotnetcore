@@ -1,0 +1,103 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using project2.model;
+
+namespace project2.Controllers
+{
+    public class project2Controller : Controller
+    {
+        public IActionResult Index()
+        {
+            return View();
+        }
+        [HttpGet]
+        [Route("project2/GetDetails")]
+        public JsonResult GetDetails()
+        {
+            return Json(new { employeeid = 1, name = "Tamil" });
+        }
+
+        [HttpGet]
+        [Route("project2/GetListDetails")]
+        public JsonResult GetListDetails()
+        {
+            List<Student> list = new List<Student> ();
+            list.Add(new Student { Id = 1, name = "test", Description = "test" });
+            list.Add(new Student { Id = 1, name = "test", Description = "test" });
+            list.Add(new Student { Id = 1, name = "test", Description = "test" });
+            return Json(new { stulist = list, len = list.Count });
+        }
+        [HttpGet("Project/GetProducts")]
+        public JsonResult GetProductFromDB()
+        {
+            string conString = "Data Source = DESKTOP-D4QHUK3\\SA ; Initial Catalog = Join1; Integrated Security = true; Trust Server Certificate = true";
+            SqlConnection con = new SqlConnection(conString);
+            string query = "select * from product";
+            SqlCommand conCommand = new SqlCommand(query, con);
+            con.Open();
+            SqlDataReader reader = conCommand.ExecuteReader();
+            List<Product> list = new List<Product>();
+            while (reader.Read())
+            {
+                list.Add(new Product
+                {
+                    Id = int.Parse(reader["id"].ToString()),
+                    name = reader["name"].ToString(),
+                    price = reader["price"].ToString()
+                }
+                    );
+                   
+            }
+            con.Close();
+            return Json(new { list});
+        }
+        [HttpGet("Proj/GetProductsSP")]
+        public JsonResult GetProductFromDBSP(int id)
+        {
+            string conString = "Data Source = DESKTOP-D4QHUK3\\SA ; Initial Catalog = Join1; Integrated Security = true; Trust Server Certificate = true";
+            SqlConnection con = new SqlConnection(conString);
+           
+            SqlCommand conCommand = new SqlCommand("productSP", con);
+            conCommand.CommandType = System.Data.CommandType.StoredProcedure;
+            conCommand.Parameters.AddWithValue("@id", id);
+            conCommand.Parameters.AddWithValue("@action", "GetSpecificProduct");
+            con.Open();
+            SqlDataReader reader = conCommand.ExecuteReader();
+            List<Product> list = new List<Product>();
+            while (reader.Read())
+            {
+                list.Add(new Product
+                {
+                    Id = int.Parse(reader["id"].ToString()),
+                    name = reader["name"].ToString(),
+                    price = reader["price"].ToString(),
+                }
+                    );
+
+            }
+            con.Close();
+            return Json(new { list });
+        }
+
+    }
+}
+
+
+
+
+
+namespace project2.model
+{
+   class   Student
+    {
+        public int Id { get; set; }
+        public string name { get; set; }
+        public string Description { get; set; }
+    }
+    class Product
+    {
+        public int Id { get; set; }
+        public string name { get; set; }
+        public string price { get; set; }
+    }
+}
